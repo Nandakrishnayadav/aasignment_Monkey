@@ -1,32 +1,37 @@
-// MidArea.js
 import React from "react";
 
 export default function MidArea({ selectedSprite, sprites, onUpdateSprite, onAddSprite, onSelectSprite }) {
- const [droppedItems, setDroppedItems] = React.useState([]);
+  
+  const [droppedItemsMap, setDroppedItemsMap] = React.useState({
+    1: [] 
+  });
 
  const handleDragOver = (e) => {
    e.preventDefault();
  };
 
  const handleDrop = (e) => {
-   e.preventDefault();
-   const type = e.dataTransfer.getData('text/plain');
-   
-   const newItem = {
-     id: Date.now(),
-     type,
-     text: getTextForType(type),
-     params: getParamsForType(type)
-   };
-   
-   const newItems = [...droppedItems, newItem];
-   setDroppedItems(newItems);
-   
-   // Update sprite animations
-   if (selectedSprite) {
-     onUpdateSprite(selectedSprite, newItems);
-   }
- };
+  e.preventDefault();
+  const type = e.dataTransfer.getData('text/plain');
+  
+  const newItem = {
+    id: Date.now(),
+    type,
+    text: getTextForType(type),
+    params: getParamsForType(type)
+  };
+  
+  
+  setDroppedItemsMap(prev => ({
+    ...prev,
+    [selectedSprite]: [...(prev[selectedSprite] || []), newItem]
+  }));
+  
+
+  if (selectedSprite) {
+    onUpdateSprite(selectedSprite, [...(droppedItemsMap[selectedSprite] || []), newItem]);
+  }
+};
 
  const getParamsForType = (type) => {
    switch(type) {
@@ -62,67 +67,92 @@ export default function MidArea({ selectedSprite, sprites, onUpdateSprite, onAdd
  };
 
  const handleRemoveItem = (id) => {
-   const newItems = droppedItems.filter(item => item.id !== id);
-   setDroppedItems(newItems);
-   if (selectedSprite) {
-     onUpdateSprite(selectedSprite, newItems);
-   }
- };
+  const newItems = (droppedItemsMap[selectedSprite] || []).filter(item => item.id !== id);
+  setDroppedItemsMap(prev => ({
+    ...prev,
+    [selectedSprite]: newItems
+  }));
+  if (selectedSprite) {
+    onUpdateSprite(selectedSprite, newItems);
+  }
+};
+React.useEffect(() => {
+  
+  setDroppedItemsMap(prev => ({
+    ...prev,
+    [sprites[sprites.length - 1]?.id]: []
+  }));
+}, [sprites.length]);
 
- return (
-   <div className="flex-1 h-full flex">
-     {/* Sprite List Section */}
-     <div className="w-48 h-full border-r border-gray-200 p-2">
-       <div className="flex justify-between items-center mb-4">
-         <div className="font-bold">Sprites</div>
-         <button 
-           className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-sm"
-           onClick={onAddSprite}
-         >
-           + Add Sprite
-         </button>
-       </div>
-       {sprites.map(sprite => (
-         <div
-           key={sprite.id}
-           className={`p-2 mb-2 cursor-pointer rounded-lg flex items-center ${
-             selectedSprite === sprite.id 
-               ? 'bg-blue-500 text-white' 
-               : 'hover:bg-gray-100'
-           }`}
-           onClick={() => onSelectSprite(sprite.id)}
-         >
-           {sprite.name}
-         </div>
-       ))}
-     </div>
+return (
+  <div className="flex-1 h-full flex">
+    {/* Sprite List Section */}
+    <div className="w-48 h-full border-r border-gray-200">
+      <div className="bg-gray-100 border-b border-gray-200 p-2 flex justify-between items-center">
+        <div className="font-bold text-gray-600 uppercase text-sm">Sprites</div>
+        <button 
+          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors"
+          onClick={onAddSprite}
+        >
+          Add Sprite
+        </button>
+      </div>
+      
+      <div className="p-2 space-y-2">
+        {sprites.map(sprite => (
+          <div
+            key={sprite.id}
+            className={`p-3 rounded-lg cursor-pointer transition-all flex items-center space-x-2
+              ${selectedSprite === sprite.id 
+                ? 'bg-blue-100 border border-blue-300' 
+                : 'hover:bg-gray-50 border border-transparent'
+              }`}
+            onClick={() => onSelectSprite(sprite.id)}
+          >
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span className={`${selectedSprite === sprite.id ? 'text-blue-800' : 'text-gray-700'}`}>
+              {sprite.name}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
 
-     {/* Dropped Items Section */}
-     <div 
-       className="flex-1 h-full overflow-auto"
-       onDragOver={handleDragOver}
-       onDrop={handleDrop}
-     >
-       <div className="p-4">
-         <div className="font-bold mb-4">
-           {sprites.find(s => s.id === selectedSprite)?.name}'s Code
-         </div>
-         {droppedItems.map(item => (
-           <div 
-             key={item.id} 
-             className="bg-blue-500 text-white px-4 py-2 my-2 rounded-lg flex justify-between items-center"
-           >
-             <span>{item.text}</span>
-             <button 
-               onClick={() => handleRemoveItem(item.id)}
-               className="ml-2 text-xl"
-             >
-               ×
-             </button>
-           </div>
-         ))}
-       </div>
-     </div>
-   </div>
- );
+    {/* Code Area */}
+    <div 
+      className="flex-1 h-full flex flex-col"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      <div className="bg-gray-100 border-b border-gray-200 p-3">
+        <div className="font-mono text-sm text-gray-800">
+          {sprites.find(s => s.id === selectedSprite)?.name}'s Code
+        </div>
+      </div>
+
+      <div className="p-4 flex-1 overflow-auto">
+        {(droppedItemsMap[selectedSprite] || []).map(item => (
+          <div 
+            key={item.id} 
+            className="bg-blue-500 text-white px-4 py-2 my-2 rounded-lg flex justify-between items-center hover:bg-blue-600 transition-colors group"
+          >
+            <span className="font-mono">{item.text}</span>
+            <button 
+              onClick={() => handleRemoveItem(item.id)}
+              className="ml-2 text-xl opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-200"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        
+        {(!droppedItemsMap[selectedSprite] || droppedItemsMap[selectedSprite].length === 0) && (
+          <div className="text-gray-400 text-center mt-8 font-mono">
+            Drag and drop blocks here
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+);
 }

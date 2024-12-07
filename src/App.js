@@ -8,7 +8,7 @@ export default function App() {
   const [sprites, setSprites] = useState([
     {
       id: 1,
-      name: 'Sprite1',
+      name: 'Sprite 1', 
       animations: []
     }
   ]);
@@ -23,9 +23,10 @@ export default function App() {
   };
 
   const handleAddSprite = () => {
+    const nextSpriteNumber = sprites.length + 1;
     const newSprite = {
-      id: sprites.length + 1,
-      name: `Sprite${sprites.length + 1}`,
+      id: nextSpriteNumber,
+      name: `Sprite ${nextSpriteNumber}`, 
       animations: []
     };
     setSprites([...sprites, newSprite]);

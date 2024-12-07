@@ -1,4 +1,4 @@
-// PreviewArea.js
+
 import React, { useState, useEffect } from "react";
 import CatSprite from "./CatSprite";
 
@@ -9,7 +9,7 @@ export default function PreviewArea({ sprites }) {
     let currentPosition = spritePositions[sprite.id] || { x: 0, y: 0, rotation: 0 };
 
     for (const animation of animations) {
-      // Update position based on animation type
+  
       if (animation.params.steps) {
         const angle = (currentPosition.rotation - 90) * (Math.PI / 180);
         currentPosition = {
@@ -35,7 +35,7 @@ export default function PreviewArea({ sprites }) {
         [sprite.id]: currentPosition
       }));
 
-      // Add delay between animations
+    
       await new Promise(resolve => setTimeout(resolve, 500));
     }
   };
