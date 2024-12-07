@@ -22,6 +22,19 @@ export default function App() {
     ));
   };
 
+  const handleAddSprite = () => {
+    const newSprite = {
+      id: sprites.length + 1,
+      name: `Sprite${sprites.length + 1}`,
+      animations: []
+    };
+    setSprites([...sprites, newSprite]);
+  };
+
+  const handleSelectSprite = (spriteId) => {
+    setSelectedSprite(spriteId);
+  };
+
   return (
     <div className="bg-blue-100 pt-6 font-sans">
       <div className="h-screen overflow-hidden flex flex-row">
@@ -31,6 +44,8 @@ export default function App() {
             sprites={sprites}
             selectedSprite={selectedSprite}
             onUpdateSprite={handleUpdateSprite}
+            onAddSprite={handleAddSprite}
+            onSelectSprite={handleSelectSprite}
           />
         </div>
         <div className="w-1/3 h-screen overflow-hidden bg-white border-t border-l border-gray-200 rounded-tl-xl ml-2">
